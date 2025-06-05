@@ -7,7 +7,7 @@ import os
 import dbus
 
 
-CONFIG_PATH = "config.yaml"
+CONFIG_PATH = "/etc/vpn-switcher/config.yaml"
 
 
 # ------------------------------------------------------------------------------
@@ -103,9 +103,16 @@ def cmd_set_fallback(args):
 # Main
 
 def main():
+    global CONFIG_PATH
     parser = argparse.ArgumentParser(
         description="Manage vpn-switcher configuration.")
     subparsers = parser.add_subparsers()
+
+    parser.add_argument(
+        '--config',
+        type=str,
+        default=CONFIG_PATH,
+        help='Path to the configuration file.')
 
     # Add rule
     p_add = subparsers.add_parser(
@@ -133,6 +140,10 @@ def main():
     p_fallback.set_defaults(func=cmd_set_fallback)
 
     args = parser.parse_args()
+
+    if args.config:
+        CONFIG_PATH = args.config
+
     if hasattr(args, "func"):
         args.func(args)
     else:

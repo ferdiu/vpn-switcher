@@ -24,7 +24,7 @@ gi.require_version('GLib', '2.0')
 # ------------------------------------------------------------------------------
 # Constants
 
-CONFIG_FILE = "config.yaml"
+CONFIG_FILE = "/etc/vpn-switcher/config.yaml"
 LOG_FILE = "/tmp/vpn-switcher.log"
 
 
@@ -212,7 +212,6 @@ def handle_connection_change(state):
 
         # Do not do nothing if there is already a VPN enabled
         vpns = get_active_interface_info(only_types=["vpn", "wireguard"])
-        print(vpns)
         if vpns:
             return False
 
@@ -247,12 +246,21 @@ def stop_loop(*args):
 # Main
 
 def main():
+    global CONFIG_FILE
     parser = argparse.ArgumentParser(description='VPN switcher daemon.')
     parser.add_argument(
         '--debug',
         action='store_true',
         help='Enable debug mode.')
+    parser.add_argument(
+        '--config',
+        type=str,
+        default=CONFIG_FILE,
+        help='Path to the configuration file.')
     args = parser.parse_args()
+
+    if args.config:
+        CONFIG_FILE = args.config
 
     if args.debug:
         # Add a new handler
