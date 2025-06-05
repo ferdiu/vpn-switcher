@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: MIT
 
 from gi.repository import GLib
+import sys
+import argparse
+import json
 import dbus
 import dbus.mainloop.glib
 import time
@@ -14,22 +17,15 @@ import gi
 
 gi.require_version('GLib', '2.0')
 
+# ref:
+# https://people.freedesktop.org/~lkundrak/nm-docs/nm-dbus-types.html#NMState
+
 
 # ------------------------------------------------------------------------------
 # Constants
 
 CONFIG_FILE = "config.yaml"
 LOG_FILE = "/tmp/vpn-switcher.log"
-
-
-# ------------------------------------------------------------------------------
-# Logging
-
-logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s'
-)
 
 
 # ------------------------------------------------------------------------------
@@ -67,7 +63,7 @@ def internet_available():
     """"Check if the internet is available."""
     try:
         resp = requests.get(config['internet_check_url'], timeout=3)
-        return resp.status_code == 204
+        return resp.status_code < 400 or resp.status_code >= 500
     except Exception as e:
         logging.warning(f"Internet check failed: {e}")
         return False
@@ -88,10 +84,17 @@ def get_active_connections():
             path) for path in active]
 
 
-def get_active_interface_info():
+def get_active_interface_info(
+    only_types=[], skip_types=[
+        "bridge", "loopback"]):
     """Get information about all active interfaces."""
     conns = get_active_connections()
     infos = []
+
+    # Check if only types and skip types intersect
+    if only_types and skip_types:
+        if any(t in only_types for t in skip_types):
+            raise ValueError("only_types and skip_types cannot intersect")
 
     for conn_proxy in conns:
         props = dbus.Interface(conn_proxy, "org.freedesktop.DBus.Properties")
@@ -105,6 +108,14 @@ def get_active_interface_info():
             devices = props.Get(
                 "org.freedesktop.NetworkManager.Connection.Active",
                 "Devices")
+
+            # Let pass only connections that are of the specified types
+            if only_types and conn_type not in only_types:
+                continue
+
+            # Skip connections that are of the specified skip_type
+            if conn_type in skip_types:
+                continue
 
             for device_path in devices:
                 device = bus.get_object(
@@ -148,7 +159,7 @@ def deactivate_vpns():
         try:
             if props.Get(
                 "org.freedesktop.NetworkManager.Connection.Active",
-                    "Type") == "vpn":
+                    "Type") in ["vpn", "wireguard"]:
                 nm_iface.DeactivateConnection(conn_proxy.object_path)
                 logging.info("Deactivated active VPN.")
         except Exception as e:
@@ -182,17 +193,27 @@ def activate_vpn_by_uuid(uuid):
 def on_nm_state_changed(state):
     """Handle state changes in NetworkManager."""
     try:
-        GLib.timeout_add_seconds(5, handle_connection_change)
+        GLib.timeout_add_seconds(5, lambda: handle_connection_change(state))
     except Exception as e:
         logging.error(f"Error scheduling connection check: {e}")
     return True
 
 
-def handle_connection_change():
+def handle_connection_change(state):
     try:
+        logging.debug(f"State changed to: {state}")
+        logging.info("Checking for active connections...")
         interfaces = get_active_interface_info()
         if not interfaces:
             logging.info("No active connections found.")
+            return False
+
+        logging.debug(f"Active connections: {json.dumps(interfaces)}")
+
+        # Do not do nothing if there is already a VPN enabled
+        vpns = get_active_interface_info(only_types=["vpn", "wireguard"])
+        print(vpns)
+        if vpns:
             return False
 
         deactivate_vpns()
@@ -226,6 +247,33 @@ def stop_loop(*args):
 # Main
 
 def main():
+    parser = argparse.ArgumentParser(description='VPN switcher daemon.')
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug mode.')
+    args = parser.parse_args()
+
+    if args.debug:
+        # Add a new handler
+        logging.basicConfig(
+            stream=sys.stdout,
+            level=logging.DEBUG,
+            format='%(asctime)s [%(levelname)s] %(message)s'
+        )
+        logging.info("Debug mode enabled.")
+    else:
+        logging.basicConfig(
+            filename=LOG_FILE,
+            level=logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(message)s'
+        )
+
+    signal.signal(signal.SIGTERM, stop_loop)
+    signal.signal(signal.SIGINT, stop_loop)
+
+    logging.info("Starting VPN switcher daemon...")
+
     global bus, nm_iface
     load_config()
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -251,6 +299,4 @@ def main():
 
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGTERM, stop_loop)
-    signal.signal(signal.SIGINT, stop_loop)
     main()

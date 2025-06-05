@@ -1,9 +1,0 @@
-trusted_connections:
-  - ssid: "Home-WiFi"
-    vpn_uuid: "uuid-of-home-vpn"
-  - interface: "eth0"
-    vpn_uuid: "uuid-of-wired-vpn"
-
-fallback_vpn_uuid: "uuid-of-fallback-vpn"
-internet_check_url: "https://www.google.com/"
-check_timeout_seconds: 20

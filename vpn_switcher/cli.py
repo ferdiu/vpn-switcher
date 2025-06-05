@@ -7,8 +7,7 @@ import os
 import dbus
 
 
-CONFIG_PATH = os.path.expanduser("~/.config/vpn-switcher/config.yaml")
-os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+CONFIG_PATH = "config.yaml"
 
 
 # ------------------------------------------------------------------------------
@@ -43,8 +42,9 @@ def get_vpn_uuid_by_name(vpn_name):
         settings_iface = dbus.Interface(
             conn, "org.freedesktop.NetworkManager.Settings.Connection")
         s = settings_iface.GetSettings()
-        if s["connection"]["type"] == "vpn" and s["connection"]["id"] == vpn_name:
-            return s["connection"]["uuid"]
+        if s["connection"]["type"] in ["vpn",
+                                       "wireguard"] and s["connection"]["id"] == vpn_name:
+            return str(s["connection"]["uuid"])
     raise ValueError(f"No VPN found with name '{vpn_name}'")
 
 

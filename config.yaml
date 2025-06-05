@@ -1,0 +1,6 @@
+check_timeout_seconds: 3
+fallback_vpn_uuid: 9b4d7159-3d5e-4769-8d3e-3d10ad85bde8
+internet_check_url: http://1.1.1.1
+trusted_connections:
+- ssid: NewPlus
+  vpn_uuid: 8d237742-1c3f-4cef-9e59-958a8958afc4

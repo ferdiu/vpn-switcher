@@ -61,12 +61,15 @@ def test_handle_connection_change(mocker, config):
     mock_deactivate = mocker.patch("vpn_switcher.daemon.deactivate_vpns")
     mock_activate = mocker.patch("vpn_switcher.daemon.activate_vpn_by_uuid")
 
-    mock_get_interfaces.return_value = [
-        {'ssid': 'trusted-wifi', 'interface': 'wlan0'}
+    mock_get_interfaces.side_effect = [
+        [{'ssid': 'trusted-wifi', 'interface': 'wlan0', 'type': 'some-type'}],
+        []  # Return empty list on second call (simulate no VPN enabled)
     ]
     mock_internet.return_value = True
 
-    result = handle_connection_change()
+    state = 1
+
+    result = handle_connection_change(state)
     assert result is False
     mock_deactivate.assert_called_once()
     mock_activate.assert_called_once()
