@@ -196,3 +196,9 @@ cython_debug/
 
 # Ignore virtual environemnt used for development
 venv
+
+# Ignore the staging directory where the packages are built
+staging/
+
+# Ignore VSCode settings
+.vscode/

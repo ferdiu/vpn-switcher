@@ -34,11 +34,14 @@ def save_config(cfg):
 def get_vpn_uuid_by_name(vpn_name):
     """Get VPN UUID by its name."""
     bus = dbus.SystemBus()
-    settings = bus.get_object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager/Settings")
+    settings = bus.get_object(
+        "org.freedesktop.NetworkManager",
+        "/org/freedesktop/NetworkManager/Settings")
     iface = dbus.Interface(settings, "org.freedesktop.NetworkManager.Settings")
     for path in iface.ListConnections():
         conn = bus.get_object("org.freedesktop.NetworkManager", path)
-        settings_iface = dbus.Interface(conn, "org.freedesktop.NetworkManager.Settings.Connection")
+        settings_iface = dbus.Interface(
+            conn, "org.freedesktop.NetworkManager.Settings.Connection")
         s = settings_iface.GetSettings()
         if s["connection"]["type"] == "vpn" and s["connection"]["id"] == vpn_name:
             return s["connection"]["uuid"]
@@ -100,18 +103,21 @@ def cmd_set_fallback(args):
 # Main
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage vpn-switcher configuration.")
+    parser = argparse.ArgumentParser(
+        description="Manage vpn-switcher configuration.")
     subparsers = parser.add_subparsers()
 
     # Add rule
-    p_add = subparsers.add_parser("add", help="Add trusted SSID or interface mapping to a VPN")
+    p_add = subparsers.add_parser(
+        "add", help="Add trusted SSID or interface mapping to a VPN")
     p_add.add_argument("--ssid", help="SSID name")
     p_add.add_argument("--interface", help="Interface name (e.g. eth0)")
     p_add.add_argument("--vpn", required=True, help="VPN connection name")
     p_add.set_defaults(func=cmd_add)
 
     # Remove rule
-    p_remove = subparsers.add_parser("remove", help="Remove rule by SSID or interface")
+    p_remove = subparsers.add_parser(
+        "remove", help="Remove rule by SSID or interface")
     p_remove.add_argument("--ssid", help="SSID to remove")
     p_remove.add_argument("--interface", help="Interface to remove")
     p_remove.set_defaults(func=cmd_remove)
@@ -121,7 +127,8 @@ def main():
     p_list.set_defaults(func=cmd_list)
 
     # Set fallback
-    p_fallback = subparsers.add_parser("set-fallback", help="Set fallback VPN by name")
+    p_fallback = subparsers.add_parser(
+        "set-fallback", help="Set fallback VPN by name")
     p_fallback.add_argument("--vpn", required=True, help="VPN connection name")
     p_fallback.set_defaults(func=cmd_set_fallback)
 
@@ -130,6 +137,7 @@ def main():
         args.func(args)
     else:
         parser.print_help()
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

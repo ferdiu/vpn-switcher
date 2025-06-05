@@ -1,10 +1,15 @@
 [Unit]
-Description=Automatic VPN Switcher for NetworkManager
+Description=VPN Switcher Daemon
 After=network-online.target
+Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/vpn-switcherd
+Type=notify
+ExecStart=/usr/bin/vpn-switcher
 Restart=on-failure
+RestartSec=5
+WatchdogSec=30
+NotifyAccess=main
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

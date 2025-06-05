@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Exit on error
+set -e
+
+# Retrieve version from pyproject.toml
+VERSION=$(grep version pyproject.toml | cut -d'"' -f2)
+
+# Check if fpm is available
+if ! command -v fpm &> /dev/null; then
+    echo "fpm is not installed. Please install it (gem install fpm)." >&2
+    exit 1
+fi
+
+# Check if the whl was already built
+if [ ! -f dist/vpn_switcher-$VERSION-py3-none-any.whl ] || [ ! -f dist/vpn_switcher-$VERSION.tar.gz ]; then
+    echo "Whl not found. Building..."
+
+    # If build python module is not available, install it with pip
+    if ! python3 -m build --help > /dev/null; then
+        echo "Python module build is not available. Installing..."
+        pip install build
+    fi
+
+    if ! python3 -m hatchling --help > /dev/null; then
+        echo "Python module hatchling is not available. Installing..."
+        pip install hatchling
+    fi
+
+    # Build sdist version
+    python3 -c 'import build; build.ProjectBuilder(".").build("sdist", "dist"); build.ProjectBuilder(".").build("wheel", "dist")'
+
+    echo "Whl built."
+fi
+
+# Delete staging folder if exists
+rm -rf staging/
+
+# Prepare a staging root
+mkdir -p staging/
+
+# Install package in staging root
+pip install . --root=staging --prefix=/usr
+
+# Install other files
+mkdir -p staging/usr/lib/systemd/system
+install -D -m 644 vpn-switcher.service staging/usr/lib/systemd/system/vpn-switcher.service
+
+for pkg in rpm deb; do
+    echo "Building $pkg package..."
+
+    fpm -s dir -t $pkg \
+        --name vpn-switcher \
+        --version $VERSION \
+        --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
+        --description "Automatic VPN switcher using NetworkManager" \
+        --license "MIT" \
+        --url "https://github.com/ferdiu/vpn-switcher" \
+        --chdir staging \
+        .
+
+    mv vpn-switcher*.$pkg ./dist/
+done

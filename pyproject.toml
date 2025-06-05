@@ -19,11 +19,36 @@ dependencies = [
   "requests",
   "dbus-python",
   "argcomplete",
+  "sdnotify",
+]
+
+[project.urls]
+Homepage = "https://github.com/ferdiu/vpn-switcher"
+Issues = "https://github.com/ferdiu/vpn-switcher/issues"
+
+[project.optional-dependencies]
+dev = ["autopep8"]
+test = [
+  "flake8",
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
 ]
 
 [project.scripts]
 vpn-switcher = "vpn_switcher.cli:main"
 vpn-switcherd = "vpn_switcher.daemon:main"
 
+[tool.hatch.build.targets.sdist]
+include = ["vpn_switcher/**", "tests/"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["vpn_switcher"]
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]

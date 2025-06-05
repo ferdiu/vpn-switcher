@@ -15,41 +15,50 @@ echo "##                             ##"
 echo "#################################"
 echo
 
-echo "1. Enforcing style \`autopep8 --in-place --aggressive --aggressive --exit-code \"*.py\"\`"
-autopep8 --in-place --aggressive --aggressive --exit-code $(find . -name "*.py")
+# Helper function to find tracked Python files while ignoring submodules
+find_tracked_python_files() {
+    # List tracked files (ignores submodules)
+    git ls-files -- '*.py' | grep -E "^(vpn_switcher|tests)/"
+
+    # List newly staged but uncommitted files
+    git diff --cached --name-only --diff-filter=ACM -- '*.py' | grep -E "^(vpn_switcher|tests)/"
+}
+
+
+echo "1. Enforcing style \`autopep8 --in-place --aggressive --aggressive --exit-code \"{vpn_switcher,tests}*.py\"\`"
+autopep8 --in-place --aggressive --aggressive --exit-code $(find_tracked_python_files)
 echo
 
-echo "2. Checking for syntax errors \`flake8 . --select=E9,F63,F7,F82 --show-source --statistics\`"
-flake8 . --select=E9,F63,F7,F82 --show-source --statistics
+echo "2. Checking for syntax errors \`flake8 . --select=E9,F63,F7,F82 --show-source --statistics \"{vpn_switcher,tests}*.py\"\`"
+flake8 . --select=E9,F63,F7,F82 --show-source --statistics --filename $(find_tracked_python_files | tr "\n" ",")
 echo
 
-echo "3. Exit with error if flake8 fails \`flake8 . --max-complexity=10 --max-line-length=127 --statistics\`"
-flake8 . --max-complexity=10 --max-line-length=127 --statistics
+echo "3. Exit with error if flake8 fails \`flake8 . --max-complexity=10 --max-line-length=127 --statistics \"{vpn_switcher,tests}*.py\"\`"
+flake8 . --max-complexity=10 --max-line-length=127 --statistics --filename $(find_tracked_python_files | tr "\n" ",")
 echo
 
 echo "4. Running tests \`pytest\`"
 pytest
 echo
 
-# TODO: increase required coverage to al least 80
+# TODO: increase required coverage to at least 90
 echo "5. Running coverage \`pytest-cov\`"
-pytest --cov src --cov-fail-under 50
+pytest --cov vpn_switcher --cov-fail-under 60
 echo
 
-# SPDX-License-Identifier:
-echo "6. Check SPDX-License-Identifier is present in all source code file:"
+echo "6. Check SPDX-License-Identifier is present in all source code files:"
 c=0
-for file in $(find . -name "*.py"); do
+for file in $(find_tracked_python_files); do
     if ! grep -q "SPDX-License-Identifier" "$file"; then
         echo "SPDX-License-Identifier is missing in $file"
-        c=$(($c + 1))
+        c=$((c + 1))
     fi
 done
 if [ $c -gt 0 ]; then
     echo "SPDX-License-Identifier is missing in $c source code files"
     exit $c
 else
-    echo "SPDX-License-Identifier is present in all source code file"
+    echo "SPDX-License-Identifier is present in all source code files"
 fi
 echo
 
