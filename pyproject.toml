@@ -46,7 +46,7 @@ include = ["vpn_switcher/**", "tests/"]
 packages = ["vpn_switcher"]
 
 [tool.pytest.ini_options]
-pythonpath = "src"
+pythonpath = "."
 minversion = "6.0"
 addopts = "-ra -q"
 testpaths = [

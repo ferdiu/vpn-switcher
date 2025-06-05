@@ -4,7 +4,7 @@
 set -e
 
 # Retrieve version from pyproject.toml
-VERSION=$(grep version pyproject.toml | cut -d'"' -f2)
+VERSION=$(grep -E "^version" pyproject.toml | cut -d'"' -f2)
 
 # Check if fpm is available
 if ! command -v fpm &> /dev/null; then
@@ -13,7 +13,7 @@ if ! command -v fpm &> /dev/null; then
 fi
 
 # Check if the whl was already built
-if [ ! -f dist/vpn_switcher-$VERSION-py3-none-any.whl ] || [ ! -f dist/vpn_switcher-$VERSION.tar.gz ]; then
+if [ ! -f "dist/vpn_switcher-$VERSION-py3-none-any.whl" ] || [ ! -f "dist/vpn_switcher-$VERSION.tar.gz" ]; then
     echo "Whl not found. Building..."
 
     # If build python module is not available, install it with pip
@@ -47,7 +47,7 @@ mkdir -p staging/usr/lib/systemd/system
 install -D -m 644 vpn-switcher.service staging/usr/lib/systemd/system/vpn-switcher.service
 
 for pkg in rpm deb; do
-    echo "Building $pkg package..."
+    echo "Building $pkg version $VERSION package..."
 
     fpm -s dir -t $pkg \
         --name vpn-switcher \
