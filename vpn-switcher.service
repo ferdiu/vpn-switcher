@@ -1,0 +1,10 @@
+[Unit]
+Description=Automatic VPN Switcher for NetworkManager
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/vpn-switcherd
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
