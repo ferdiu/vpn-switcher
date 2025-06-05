@@ -46,18 +46,42 @@ pip install . --root=staging --prefix=/usr
 mkdir -p staging/usr/lib/systemd/system
 install -D -m 644 vpn-switcher.service staging/usr/lib/systemd/system/vpn-switcher.service
 
-for pkg in rpm deb; do
-    echo "Building $pkg version $VERSION package..."
+# Build rpm package
+echo "Building rpm version $VERSION package..."
+fpm -s dir -t rpm \
+    --name vpn-switcher \
+    --version $VERSION \
+    --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
+    --description "Automatic VPN switcher using NetworkManager" \
+    --license "MIT" \
+    --url "https://github.com/ferdiu/vpn-switcher" \
+    --depends NetworkManager \
+    --depends python3-PyYAML \
+    --depends python3-gobject \
+    --depends python3-requests \
+    --depends python3-dbus \
+    --depends python3-sdnotify \
+    --chdir staging \
+    .
 
-    fpm -s dir -t $pkg \
-        --name vpn-switcher \
-        --version $VERSION \
-        --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
-        --description "Automatic VPN switcher using NetworkManager" \
-        --license "MIT" \
-        --url "https://github.com/ferdiu/vpn-switcher" \
-        --chdir staging \
-        .
+mv vpn-switcher*.rpm ./dist/
 
-    mv vpn-switcher*.$pkg ./dist/
-done
+# Build deb package
+echo "Building deb version $VERSION package..."
+fpm -s dir -t deb \
+    --name vpn-switcher \
+    --version $VERSION \
+    --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
+    --description "Automatic VPN switcher using NetworkManager" \
+    --license "MIT" \
+    --url "https://github.com/ferdiu/vpn-switcher" \
+    --depends network-manager \
+    --depends python3-yaml \
+    --depends python3-gi \
+    --depends python3-requests \
+    --depends python3-dbus \
+    --depends python3-sdnotify \
+    --chdir staging \
+    .
+
+mv vpn-switcher*.deb ./dist/

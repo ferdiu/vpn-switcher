@@ -18,7 +18,6 @@ dependencies = [
   "PyGObject",
   "requests",
   "dbus-python",
-  "argcomplete",
   "sdnotify",
 ]
 
