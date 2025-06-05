@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=notify
-ExecStart=/usr/bin/vpn-switcher
+ExecStart=/usr/bin/vpn-switcherd
 Restart=on-failure
 RestartSec=5
 WatchdogSec=30
