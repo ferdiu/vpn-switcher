@@ -41,9 +41,8 @@ echo "4. Running tests \`pytest\`"
 pytest
 echo
 
-# TODO: increase required coverage to at least 90
 echo "5. Running coverage \`pytest-cov\`"
-pytest --cov vpn_switcher --cov-fail-under 50
+pytest --cov vpn_switcher --cov-fail-under 75
 echo
 
 echo "6. Check SPDX-License-Identifier is present in all source code files:"

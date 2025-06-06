@@ -199,9 +199,40 @@ def on_nm_state_changed(state):
     return True
 
 
+def is_correct_vpn_enabled() -> bool:
+    """Check if the correct VPN is enabled."""
+    fallback_vpn = config.get("fallback_vpn_uuid")
+
+    interfaces = get_active_interface_info(
+        skip_types=["bridge", "loopback", "vpn", "wireguard"])
+    vpns = get_active_interface_info(only_types=["vpn", "wireguard"])
+
+    if not interfaces:
+        # No network interface is up — expect no VPN active
+        return len(vpns) == 0
+
+    # Try to find a matching trusted rule
+    trusted_rules = config.get("trusted_connections", [])
+    for rule in trusted_rules:
+        if rule.get("ssid") and any(
+                i.get("ssid") == rule["ssid"] for i in interfaces):
+            return any(vpn.get("uuid") == rule["vpn_uuid"] for vpn in vpns)
+        if rule.get("interface") and any(i.get("interface")
+                                         == rule["interface"] for i in interfaces):
+            return any(vpn.get("uuid") == rule["vpn_uuid"] for vpn in vpns)
+
+    # No trusted match -> fallback VPN should be active
+    if fallback_vpn:
+        return any(vpn.get("uuid") == fallback_vpn for vpn in vpns)
+
+    # No trusted match and no fallback set — any VPN means incorrect
+    return len(vpns) == 0
+
+
 def handle_connection_change(state):
     try:
-        logging.debug(f"State changed to: {state}")
+        if state:
+            logging.debug(f"State changed to: {state}")
         logging.info("Checking for active connections...")
         interfaces = get_active_interface_info()
         if not interfaces:
@@ -210,9 +241,8 @@ def handle_connection_change(state):
 
         logging.debug(f"Active connections: {json.dumps(interfaces)}")
 
-        # Do not do nothing if there is already a VPN enabled
-        vpns = get_active_interface_info(only_types=["vpn", "wireguard"])
-        if vpns:
+        # If the correct VPN is enabled, nothing to do
+        if is_correct_vpn_enabled():
             return False
 
         deactivate_vpns()
@@ -290,6 +320,9 @@ def main():
         'org.freedesktop.NetworkManager',
         '/org/freedesktop/NetworkManager')
     nm_iface = dbus.Interface(nm, 'org.freedesktop.NetworkManager')
+
+    # Run check immediately on start
+    handle_connection_change(None)
 
     bus.add_signal_receiver(
         on_nm_state_changed,
