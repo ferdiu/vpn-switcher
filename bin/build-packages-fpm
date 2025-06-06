@@ -47,7 +47,7 @@ pip install . --root=staging --prefix=/usr
 # Install other files
 mkdir -p staging/usr/lib/systemd/system
 install -D -m 644 vpn-switcher.service staging/usr/lib/systemd/system/vpn-switcher.service
-install -D -m 644 empty-config.yaml staging/etc/vpn-switcher/config.yaml
+install -D -m 644 config.yaml staging/etc/vpn-switcher/config.yaml
 
 # Apply patches
 CURR_PYTHON_PATH="$(realpath -s $(which python))"
