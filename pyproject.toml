@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vpn-switcher"
-version = "0.1.1"
+version = "0.1.2"
 description = "Automatic VPN switcher for NetworkManager"
 authors = [
   { name="Federico Manzella", email="ferdiu.manzella@gmail.com" }
