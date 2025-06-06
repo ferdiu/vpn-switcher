@@ -51,7 +51,7 @@ def get_vpn_uuid_by_name(vpn_name):
 def cmd_add(args):
     """Add a trusted connection rule."""
     cfg = load_config()
-    if "trusted_connections" not in cfg:
+    if "trusted_connections" not in cfg or not cfg["trusted_connections"]:
         cfg["trusted_connections"] = []
 
     uuid = get_vpn_uuid_by_name(args.vpn)
@@ -87,7 +87,7 @@ def cmd_list(args):
     print("Trusted Connections:")
     for rule in cfg.get("trusted_connections", []):
         print(f"  - {rule}")
-    print(f"Fallback VPN UUID: {cfg.get('fallback_vpn_uuid')}")
+    print(f"Fallback VPN UUID: {cfg.get('fallback_vpn_uuid', None)}")
 
 
 def cmd_set_fallback(args):
