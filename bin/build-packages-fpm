@@ -47,6 +47,7 @@ pip install . --root=staging --prefix=/usr
 # Install other files
 mkdir -p staging/usr/lib/systemd/system
 install -D -m 644 vpn-switcher.service staging/usr/lib/systemd/system/vpn-switcher.service
+install -D -m 644 empty-config.yaml staging/etc/vpn-switcher/config.yaml
 
 # Apply patches
 CURR_PYTHON_PATH="$(realpath -s $(which python))"
@@ -62,6 +63,7 @@ fpm -s dir -t rpm \
     --description "Automatic VPN switcher using NetworkManager" \
     --license "MIT" \
     --url "https://github.com/ferdiu/vpn-switcher" \
+    --architecture all \
     --depends NetworkManager \
     --depends python3-PyYAML \
     --depends python3-gobject \
@@ -82,6 +84,7 @@ fpm -s dir -t deb \
     --description "Automatic VPN switcher using NetworkManager" \
     --license "MIT" \
     --url "https://github.com/ferdiu/vpn-switcher" \
+    --architecture all \
     --depends network-manager \
     --depends python3-yaml \
     --depends python3-gi \

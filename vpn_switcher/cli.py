@@ -99,6 +99,14 @@ def cmd_set_fallback(args):
     print(f"Set fallback VPN to: {uuid}")
 
 
+def cmd_unset_fallback(_args):
+    """Unset the fallback VPN UUID."""
+    cfg = load_config()
+    cfg["fallback_vpn_uuid"] = None
+    save_config(cfg)
+    print("Unset fallback VPN: no VPN will be used as fallback.")
+
+
 # ------------------------------------------------------------------------------
 # Main
 
@@ -138,6 +146,11 @@ def main():
         "set-fallback", help="Set fallback VPN by name")
     p_fallback.add_argument("--vpn", required=True, help="VPN connection name")
     p_fallback.set_defaults(func=cmd_set_fallback)
+
+    # Unset fallback
+    p_unset_fallback = subparsers.add_parser(
+        "unset-fallback", help="Unset fallback VPN")
+    p_unset_fallback.set_defaults(func=cmd_unset_fallback)
 
     args = parser.parse_args()
 

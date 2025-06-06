@@ -168,6 +168,19 @@ def test_cmd_set_fallback(mock_load, mock_get_uuid, mock_save, capsys):
     assert "Set fallback VPN to: uuid-fallback" in out
 
 
+@patch("vpn_switcher.cli.save_config")
+@patch("vpn_switcher.cli.get_vpn_uuid_by_name", return_value="uuid-fallback")
+@patch("vpn_switcher.cli.load_config", return_value={})
+def test_cmd_unset_fallback(mock_load, mock_get_uuid, mock_save, capsys):
+    class Args:
+        pass
+
+    vpn_switcher_cli.cmd_unset_fallback(Args())
+    mock_save.assert_called_once()
+    out = capsys.readouterr().out
+    assert "Unset fallback VPN: no VPN will be used as fallback." in out
+
+
 @patch("vpn_switcher.cli.cmd_add")
 @patch("vpn_switcher.cli.cmd_remove")
 @patch("vpn_switcher.cli.cmd_list")

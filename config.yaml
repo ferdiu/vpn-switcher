@@ -1,6 +1,17 @@
-check_timeout_seconds: 3
-fallback_vpn_uuid: 9b445659-345e-4456-865e-3d4356354de8
-internet_check_url: http://1.1.1.1
+# This file is used to configure the VPN siwtcher daemon (vpn-switcherd)
+
+# Times out after 20 seconds
+check_timeout_seconds: 20
+
+# The VPN UUID to use if the current network is not trusted
+fallback_vpn_uuid: null
+
+# The url used to check if the internet is reachable
+internet_check_url: null
+
+# A list of trusted connections
 trusted_connections:
-- ssid: MyConnectionSSID
-  vpn_uuid: 83456456-145f-445f-9546-94854638afc4
+# - name: "HomeWifi"
+#   uuid: "00000000-0000-0000-0000-000000000000"
+# - name: "Another-trusted-network"
+#   uuid: "00000000-0000-0000-0000-000000000000"

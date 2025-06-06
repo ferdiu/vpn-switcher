@@ -168,6 +168,9 @@ def deactivate_vpns():
 
 def activate_vpn_by_uuid(uuid):
     """Activate a VPN by UUID."""
+    if not uuid:
+        logging.info("No UUID provided. No VPN will be activated.")
+        return
     settings = bus.get_object(
         'org.freedesktop.NetworkManager',
         '/org/freedesktop/NetworkManager/Settings')
@@ -314,6 +317,14 @@ def main():
 
     global bus, nm_iface
     load_config()
+
+    # Optimization: exit gracefully if no VPNs are configured
+    if not config.get('trusted_connections') and not config.get(
+            'fallback_vpn_uuid'):
+        logging.warning("No VPNs configured. Exiting. " +
+                        f"Please: edit your {CONFIG_FILE}")
+        sys.exit(0)
+
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
     nm = bus.get_object(
