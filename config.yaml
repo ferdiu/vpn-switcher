@@ -7,7 +7,7 @@ check_timeout_seconds: 20
 fallback_vpn_uuid: null
 
 # The url used to check if the internet is reachable
-internet_check_url: null
+internet_check_url: http://1.1.1.1
 
 # A list of trusted connections
 trusted_connections:
