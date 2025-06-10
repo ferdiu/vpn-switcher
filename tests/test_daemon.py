@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 import pytest
-import requests
+import logging
 from unittest.mock import MagicMock, patch
 from vpn_switcher.daemon import (
     internet_available,
@@ -52,22 +52,32 @@ def mock_dbus(monkeypatch):
 # ------------------------------------------------------------------------------
 # Test internet_available_success
 
-def test_internet_available_success(mocker, config):
-    mock_resp = mocker.Mock()
-    mock_resp.status_code = 204
-    mock_get = mocker.patch("requests.get", return_value=mock_resp)
-    assert internet_available()
-    mock_get.assert_called_once()
+def test_internet_available_success(mocker):
+    mock_iface = mocker.patch("vpn_switcher.daemon.nm_iface")
+    mock_iface.CheckConnectivity.return_value = 4
+    assert internet_available() is True
+    mock_iface.CheckConnectivity.assert_called_once()
 
 
 # ------------------------------------------------------------------------------
-# Test internet_available_failure
+# Test internet_available_failure_due_to_wrong_value
 
-def test_internet_available_failure(mocker, config):
-    mock_get = mocker.patch(
-        "requests.get",
-        side_effect=requests.exceptions.RequestException)
+def test_internet_available_failure_due_to_wrong_value(mocker):
+    mock_iface = mocker.patch("vpn_switcher.daemon.nm_iface")
+    mock_iface.CheckConnectivity.return_value = 2  # not FULL connectivity
     assert internet_available() is False
+    mock_iface.CheckConnectivity.assert_called_once()
+
+
+# ------------------------------------------------------------------------------
+# Test internet_available_failure_due_to_exception
+
+def test_internet_available_failure_due_to_exception(mocker, caplog):
+    mock_iface = mocker.patch("vpn_switcher.daemon.nm_iface")
+    mock_iface.CheckConnectivity.side_effect = Exception("DBus error")
+    with caplog.at_level(logging.WARNING):
+        assert internet_available() is False
+        assert "Connectivity check failed" in caplog.text
 
 
 # ------------------------------------------------------------------------------

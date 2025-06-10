@@ -16,7 +16,6 @@ requires-python = ">=3.8"
 dependencies = [
   "PyYAML",
   "PyGObject",
-  "requests",
   "dbus-python",
   "sdnotify",
 ]

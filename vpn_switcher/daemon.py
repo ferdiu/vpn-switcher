@@ -10,16 +10,16 @@ import dbus.mainloop.glib
 import time
 import yaml
 import logging
-import requests
 import signal
 from sdnotify import SystemdNotifier
 import gi
 
 gi.require_version('GLib', '2.0')
 
-# ref:
+# refs:
 # https://people.freedesktop.org/~lkundrak/nm-docs/nm-dbus-types.html#NMState
-
+# https://people.freedesktop.org/~lkundrak/nm-docs/nm-dbus-types.html#NMConnectivityState
+# https://people.freedesktop.org/~lkundrak/nm-docs/gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -60,12 +60,18 @@ def load_config():
 
 
 def internet_available():
-    """"Check if the internet is available."""
+    """Check if internet is available using NetworkManager's CheckConnectivity."""
     try:
-        resp = requests.get(config['internet_check_url'], timeout=3)
-        return resp.status_code < 400 or resp.status_code >= 500
+        connectivity = nm_iface.CheckConnectivity()
+        logging.debug(
+            f"NetworkManager connectivity check returned: {connectivity}")
+        # NM_CONNECTIVITY_FULL (internet is reachable)
+        return connectivity == 4
+        # NOTE: these is an error in the online documentation with this particular
+        # enum value. It is actually 4. In the documentation they start from 1
+        # instead of 0.
     except Exception as e:
-        logging.warning(f"Internet check failed: {e}")
+        logging.warning(f"Connectivity check failed: {e}")
         return False
 
 
