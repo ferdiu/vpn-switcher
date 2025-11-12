@@ -35,7 +35,7 @@ Automatic VPN switcher using NetworkManager.
 %pyproject_wheel
 
 %install
-install -D -m 0644 ./vpn-switcher.service %{buildroot}%{_unitdir}/vpn-switcher.service
+install -D -m 0644 ./vpn-switcher.service %{buildroot}/usr/lib/systemd/system/vpn-switcher.service
 install -D -m 0644 ./config.yaml %{buildroot}%{_sysconfdir}/vpn-switcher/config.yaml
 %pyproject_install
 
