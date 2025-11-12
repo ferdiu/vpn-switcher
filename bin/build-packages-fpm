@@ -54,26 +54,31 @@ CURR_PYTHON_PATH="$(realpath -s $(which python))"
 sed -i "s|#!${CURR_PYTHON_PATH}|#!/usr/bin/python|g" staging/usr/bin/vpn-switcher
 sed -i "s|#!${CURR_PYTHON_PATH}|#!/usr/bin/python|g" staging/usr/bin/vpn-switcherd
 
-# Build rpm package
-echo "Building rpm version $VERSION package..."
-fpm -s dir -t rpm \
-    --name vpn-switcher \
-    --version $VERSION \
-    --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
-    --description "Automatic VPN switcher using NetworkManager" \
-    --license "MIT" \
-    --url "https://github.com/ferdiu/vpn-switcher" \
-    --architecture all \
-    --depends NetworkManager \
-    --depends python3-PyYAML \
-    --depends python3-gobject \
-    --depends python3-requests \
-    --depends python3-dbus \
-    --depends python3-sdnotify \
-    --chdir staging \
-    .
+# Build rpm package (left for reference but now uses spec file)
+# echo "Building rpm version $VERSION package..."
+# fpm -s dir -t rpm \
+#     --name vpn-switcher \
+#     --version $VERSION \
+#     --maintainer "Federico Manzella <ferdiu.manzella@gmail.com>" \
+#     --description "Automatic VPN switcher using NetworkManager" \
+#     --license "MIT" \
+#     --url "https://github.com/ferdiu/vpn-switcher" \
+#     --architecture all \
+#     --depends NetworkManager \
+#     --depends python3-PyYAML \
+#     --depends python3-gobject \
+#     --depends python3-requests \
+#     --depends python3-dbus \
+#     --depends python3-sdnotify \
+#     --chdir staging \
+#     .
 
-mv vpn-switcher*.rpm ./dist/
+# Download source
+spectool -g -R ./vpn-switcher.spec
+# Build package
+rpmbuild -bb ./vpn-switcher.spec
+# Move rpm to dist
+mv $(rpm --eval %{_rpmdir})/noarch/vpn-switcher*.rpm ./dist/
 
 # Build deb package
 echo "Building deb version $VERSION package..."
