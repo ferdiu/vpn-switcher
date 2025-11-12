@@ -39,16 +39,13 @@ install -D -m 0644 ./vpn-switcher.service %{buildroot}%{_unitdir}/vpn-switcher.s
 install -D -m 0644 ./config.yaml %{buildroot}%{_sysconfdir}/vpn-switcher/config.yaml
 %pyproject_install
 
-%check
-ls -R
-
 %files
 %license LICENSE
 %doc README.md
 %{python3_sitelib}/vpn_switcher*
 %{_bindir}/vpn-switcher
 %{_bindir}/vpn-switcherd
-%{_unitdir}/vpn-switcher.service
+/usr/lib/systemd/system/vpn-switcher.service
 %config(noreplace) %{_sysconfdir}/vpn-switcher/config.yaml
 
 %changelog
